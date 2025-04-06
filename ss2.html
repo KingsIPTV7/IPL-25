@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Video Player with Quality Selection</title>
+    <style>
+        /* Styling the video player container */
+        .video-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #000;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Styling the video element */
+        video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Custom controls container */
+        .custom-controls {
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+        }
+
+        /* Button styling */
+        button {
+            background: #ff4444;
+            border: none;
+            padding: 5px 15px;
+            margin: 0 5px;
+            color: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        button:hover {
+            background: #cc0000;
+        }
+
+        /* Quality selector styling */
+        select {
+            padding: 5px;
+            margin: 0 5px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        select:hover {
+            background: #cc0000;
+        }
+    </style>
+</head>
+<body>
+    <div class="video-container">
+        <video id="myVideo" controls>
+            <source src="https://v18tataplaysyndication.akamaized.net/bpk-tv/Sports18_1_HD_voot_MOB/output03/hdntl=exp=1743959716~acl=%2f*~data=hdntl~hmac=e0010616470e9e14241cfcffa81f2c55a03f1b99eb92298b561ef1f083999a0a/Sports18_1_HD_voot_MOB-audio_42842_eng=42800-video=151600.m3u8" type="application/vnd.apple.mpegurl">
+            Your browser does not support the video tag.
+        </video>
+        <!-- Custom controls -->
+        <div class="custom-controls">
+            <button onclick="playPause()">Play/Pause</button>
+            <button onclick="rewind()">Rewind 10s</button>
+            <button onclick="fastForward()">Forward 10s</button>
+            <button onclick="toggleMute()">Mute/Unmute</button>
+            <button onclick="volumeUp()">Vol +</button>
+            <button onclick="volumeDown()">Vol -</button>
+            <select id="qualitySelector" onchange="changeQuality(this.value)">
+                <option value="-1">Auto</option>
+                <option value="0">360p</option>
+                <option value="1">480p</option>
+                <option value="2">720p</option>
+                <option value="3">1080p</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Include hls.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script>
+        // JavaScript for custom controls, HLS, and quality selection
+        const video = document.getElementById("myVideo");
+        const qualitySelector = document.getElementById("qualitySelector");
+        const videoSrc = "https://v18tataplaysyndication.akamaized.net/bpk-tv/Sports18_1_HD_voot_MOB/output03/hdntl=exp=1743959716~acl=%2f*~data=hdntl~hmac=e0010616470e9e14241cfcffa81f2c55a03f1b99eb92298b561ef1f083999a0a/Sports18_1_HD_voot_MOB-audio_42842_eng=42800-video=151600.m3u8";
+        let hls;
+
+        // Initialize HLS
+        if (Hls.isSupported()) {
+            hls = new Hls();
+            hls.loadSource(videoSrc);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                console.log("HLS manifest loaded");
+                populateQualityOptions();
+            });
+            hls.on(Hls.Events.ERROR, function(event, data) {
+            console.error("HLS error:", data);
+            });
+        } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+            video.src = videoSrc;
+            video.addEventListener("loadedmetadata", function() {
+                console.log("Native HLS loaded");
+            });
+        } else {
+            console.error("HLS is not supported in this browser.");
+        }
+
+     
+
+        // Change quality
+        function changeQuality(level) {
+            if (hls && hls.levels.length > 0) {
+                hls.currentLevel = parseInt(level); // -1 for auto, 0+ for specific levels
+            } else {
+                console.log("Quality switching not supported with this stream.");
+                // Fallback behavior: reload with a hypothetical URL (requires master playlist)
+                alert("This stream doesn’t support dynamic quality switching. Please provide a master .m3u8 URL.");
+            }
+        }
+
+       
+        // Custom control functions
+        function playPause() {
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+
+        function rewind() {
+            video.currentTime -= 10;
+        }
+
+        function fastForward() {
+            video.currentTime += 10;
+        }
+
+        function toggleMute() {
+            video.muted = !video.muted;
+        }
+
+        function volumeUp() {
+            if (video.volume < 1) {
+                video.volume = Math.min(1, video.volume + 0.1);
+            }
+        }
+
+        function volumeDown() {
+            if (video.volume > 0) {
+                video.volume = Math.max(0, video.volume - 0.1);
+            }
+        }
+    </script>
+</body>
+</html>
